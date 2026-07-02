@@ -9,7 +9,7 @@ const lexend = Lexend({
 
 export const metadata: Metadata = {
   title: "SkillTree",
-  description: "Personal learning operating system for career development",
+  description: "Personal learning tracker based on skill mastery",
 };
 
 export default function RootLayout({
