@@ -228,8 +228,35 @@ export const STATUS_STYLES: Record<TaskStatus, StatusStyle> = {
   },
 };
 
+interface PriorityStyle {
+  label: string;
+  text: string;
+  bg: string;
+  border: string;
+}
+
+export const PRIORITY_STYLES: Record<TaskPriority, PriorityStyle> = {
+  must: {
+    label: "Bắt buộc",
+    text: "text-red-300",
+    bg: "bg-red-500/10",
+    border: "border-red-500/30",
+  },
+  should: {
+    label: "Nên làm",
+    text: "text-amber-300",
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/30",
+  },
+  stretch: {
+    label: "Bổ sung",
+    text: "text-violet-300",
+    bg: "bg-violet-500/10",
+    border: "border-violet-500/30",
+  },
+};
 export const PRIORITY_LABEL: Record<TaskPriority, string> = {
   must: "Bắt buộc",
   should: "Nên làm",
-  stretch: "Thưởng thêm",
+  stretch: "Bổ sung",
 };

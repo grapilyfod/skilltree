@@ -1,5 +1,6 @@
 "use client";
 import { getRandomCategoryColor } from "@/lib/style-maps";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useState, useEffect, useMemo } from "react";
 import type { TimeBlock, TaskStatus, DailyReview, SkillCategory, SkillNode, SkillCategoryId } from "@/types";
 import { TimetableList } from "@/components/TimetableList";
@@ -75,7 +76,15 @@ export function DashboardClient({ initialBlocks }: DashboardClientProps) {
 
     return calculateSkillMasteryFromTimetables(timetables, dailyReviews, skillNodesBase);
   }, [blocks, dailyReviews, selectedDateStr, skillNodesBase]);
-
+  const [confirmDialog, setConfirmDialog] = useState<{
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    showCancel?: boolean;
+    variant?: "danger" | "warning" | "info";
+    onConfirm: () => void;
+  } | null>(null);
   const weeklySummary = useMemo(() => {
     const timetables = getTimetablesMap();
     timetables[selectedDateStr] = blocks;
@@ -88,7 +97,41 @@ export function DashboardClient({ initialBlocks }: DashboardClientProps) {
       skillCategories,
     );
   }, [blocks, dailyReviews, selectedDateStr, skillNodesBase, skillCategories]);
+  const showAlertDialog = (
+    title: string,
+    message: string,
+    variant: "danger" | "warning" | "info" = "warning",
+  ) => {
+    setConfirmDialog({
+      title,
+      message,
+      confirmLabel: "OK",
+      showCancel: false,
+      variant,
+      onConfirm: () => {
+        setConfirmDialog(null);
+      },
+    });
+  };
 
+  const showConfirmDialog = (
+    title: string,
+    message: string,
+    onConfirm: () => void,
+  ) => {
+    setConfirmDialog({
+      title,
+      message,
+      confirmLabel: "Có",
+      cancelLabel: "Không",
+      showCancel: true,
+      variant: "danger",
+      onConfirm: () => {
+        onConfirm();
+        setConfirmDialog(null);
+      },
+    });
+  };
   /**
    * Load daily reviews on mount.
    */
@@ -241,9 +284,15 @@ const normalizedCategories = initialCategories.map((category) => {
    * Delete a task with confirmation.
    */
   const handleDeleteTask = (blockId: string) => {
-    if (typeof window !== "undefined" && window.confirm("Bạn chắc chắn muốn xóa task này?")) {
-      setBlocksState((prevBlocks) => prevBlocks.filter((b) => b.id !== blockId));
-    }
+    showConfirmDialog(
+      "Xóa task?",
+      "Bạn có chắc chắn muốn xóa task này không?",
+      () => {
+        setBlocksState((prevBlocks) =>
+          prevBlocks.filter((block) => block.id !== blockId),
+        );
+      },
+    );
   };
 
   /**
@@ -272,28 +321,29 @@ const normalizedCategories = initialCategories.map((category) => {
    * Reset timetable for selected date only.
    */
   const handleResetDay = () => {
-    if (
-      typeof window !== "undefined" &&
-      window.confirm("Bạn chắc chắn muốn reset tất cả task của ngày này?")
-    ) {
-      deleteTimetable(selectedDateStr);
-      deleteDailyReview(selectedDateStr);
+    showConfirmDialog(
+      "Reset ngày?",
+      "Bạn có chắc chắn muốn reset tất cả task và daily review của ngày này không?",
+      () => {
+        deleteTimetable(selectedDateStr);
+        deleteDailyReview(selectedDateStr);
 
-      setDailyReviews((prev) => {
-        const next = { ...prev };
-        delete next[selectedDateStr];
-        return next;
-      });
+        setDailyReviews((prev) => {
+          const next = { ...prev };
+          delete next[selectedDateStr];
+          return next;
+        });
 
-      // If today, reset to initialBlocks; otherwise reset to empty
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (formatDate(selectedDate) === formatDate(today)) {
-        setBlocksState(initialBlocks);
-      } else {
-        setBlocksState([]);
-      }
-    }
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (formatDate(selectedDate) === formatDate(today)) {
+          setBlocksState(initialBlocks);
+        } else {
+          setBlocksState([]);
+        }
+      },
+    );
   };
 
   /**
@@ -360,20 +410,23 @@ const handleDeleteSkill = (node: SkillNode) => {
   const isUsedToday = blocks.some((block) => block.skillNodeId === node.id);
 
   if (isUsedInSavedTasks || isUsedToday) {
-    window.alert(
-      `Skill "${node.name}" đang được dùng trong task. Hãy edit/xóa các task đó trước.`,
+    showAlertDialog(
+      "Không thể xóa skill",
+      `Skill "${node.name}" đang được dùng trong task. Hãy edit hoặc xóa các task đó trước.`,
+      "warning",
     );
     return;
   }
 
-  if (
-    typeof window !== "undefined" &&
-    window.confirm(`Xóa skill "${node.name}"?`)
-  ) {
-    setSkillNodesBase((prev) =>
-      prev.filter((skill) => skill.id !== node.id),
-    );
-  }
+  showConfirmDialog(
+    "Xóa skill?",
+    `Bạn có chắc chắn muốn xóa skill "${node.name}" không?`,
+    () => {
+      setSkillNodesBase((prev) =>
+        prev.filter((skill) => skill.id !== node.id),
+      );
+    },
+  );
 };
 
 const handleDeleteCategory = (category: SkillCategory) => {
@@ -382,8 +435,10 @@ const handleDeleteCategory = (category: SkillCategory) => {
   );
 
   if (childSkills.length > 0) {
-    window.alert(
-      "Category này còn skill bên trong. Hãy xóa skill trước rồi mới xóa category.",
+    showAlertDialog(
+      "Không thể xóa category",
+      `Category "${category.label}" vẫn còn ${childSkills.length} skill bên trong. Hãy xóa các skill trước rồi mới xóa category.`,
+      "warning",
     );
     return;
   }
@@ -397,20 +452,23 @@ const handleDeleteCategory = (category: SkillCategory) => {
   const isUsedToday = blocks.some((block) => block.categoryId === category.id);
 
   if (isUsedInSavedTasks || isUsedToday) {
-    window.alert(
-      `Category "${category.label}" đang được dùng trong task. Hãy edit/xóa các task đó trước.`,
+    showAlertDialog(
+      "Không thể xóa category",
+      `Category "${category.label}" đang được dùng trong task. Hãy edit hoặc xóa các task đó trước.`,
+      "warning",
     );
     return;
   }
 
-  if (
-    typeof window !== "undefined" &&
-    window.confirm(`Xóa category "${category.label}"?`)
-  ) {
-    setSkillCategories((prev) =>
-      prev.filter((item) => item.id !== category.id),
-    );
-  }
+  showConfirmDialog(
+    "Xóa category?",
+    `Bạn có chắc chắn muốn xóa category "${category.label}" không?`,
+    () => {
+      setSkillCategories((prev) =>
+        prev.filter((item) => item.id !== category.id),
+      );
+    },
+  );
 };
   if (!isLoaded || !isSkillTreeLoaded) {
     return null;
@@ -434,7 +492,7 @@ const handleDeleteCategory = (category: SkillCategory) => {
           onClick={handleOpenReview}
           className="rounded border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-emerald-400 transition-all hover:bg-emerald-500/20"
         >
-          {currentDayReview ? "✎ Edit Review" : "📝 Review Day"}
+          {currentDayReview ? "Edit Review" : "📝 Review Day"}
         </button>
 
         <button
@@ -535,6 +593,18 @@ const handleDeleteCategory = (category: SkillCategory) => {
           categories={skillCategories}
           onSubmit={handleAddSkill}
           onCancel={() => setShowAddSkillForm(false)}
+        />
+      )}
+      {confirmDialog && (
+        <ConfirmDialog
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmLabel={confirmDialog.confirmLabel}
+          cancelLabel={confirmDialog.cancelLabel}
+          showCancel={confirmDialog.showCancel}
+          variant={confirmDialog.variant}
+          onConfirm={confirmDialog.onConfirm}
+          onCancel={() => setConfirmDialog(null)}
         />
       )}
     </>

@@ -11,7 +11,7 @@ export default function DashboardPage() {
             Skill Tree
           </h1>
           <p className="text-sm text-zinc-500">
-            Bảng điều khiển học tập &amp; sự nghiệp hôm nay
+            Stats Tracker cho lịch công việc &amp; học tập hàng ngày 
           </p>
         </div>
         <LiveClock />

@@ -1,7 +1,7 @@
 "use client";
 
 import type { DailyReview } from "@/types";
-import { getResultLabel, getMoodLabel } from "@/lib/streak-utils";
+import { getResultLabel } from "@/lib/streak-utils";
 
 interface DailyReviewCardProps {
   review: DailyReview;
@@ -26,9 +26,6 @@ export function DailyReviewCard({ review, onEdit }: DailyReviewCardProps) {
 
           <div className="mt-2 space-y-1 text-xs text-zinc-400">
             <p>
-              <span className="text-zinc-500">Cảm xúc:</span> {getMoodLabel(review.mood)}
-            </p>
-            <p>
               <span className="text-zinc-500">Must tasks:</span> {review.mustDone} đạt •{" "}
               {review.mustPartial} một phần • {review.mustMissed} không đạt /{" "}
               {review.mustTotal} tổng
@@ -40,7 +37,7 @@ export function DailyReviewCard({ review, onEdit }: DailyReviewCardProps) {
 
           {review.blockers && (
             <div className="mt-2 rounded border border-white/[0.06] bg-black/20 p-2">
-              <p className="text-[11px] uppercase tracking-wide text-zinc-500">Bị kẹt</p>
+              <p className="text-[11px] uppercase tracking-wide text-zinc-500">Bị kẹt ở đâu?</p>
               <p className="mt-1 text-xs text-zinc-300">{review.blockers}</p>
             </div>
           )}

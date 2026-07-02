@@ -3,7 +3,6 @@
 import { useState } from "react";
 import type { TimeBlock, DailyReview } from "@/types";
 import { calculateReviewResult } from "@/lib/streak-utils";
-import { getMoodLabel } from "@/lib/streak-utils";
 
 interface DailyReviewModalProps {
   dateStr: string;
@@ -32,10 +31,10 @@ export function DailyReviewModal({
   // Calculate result
   const result = calculateReviewResult(mustDone, mustPartial, mustMissed, mustTotal);
 
+  // Keep mood internally for old DailyReview type compatibility, but do not show it in UI
+  const mood: DailyReview["mood"] = existingReview?.mood ?? "okay";
+
   // Form state
-  const [mood, setMood] = useState<"easy" | "okay" | "hard">(
-    existingReview?.mood ?? "okay",
-  );
   const [blockers, setBlockers] = useState(existingReview?.blockers ?? "");
   const [reflection, setReflection] = useState(existingReview?.reflection ?? "");
 
@@ -72,12 +71,15 @@ export function DailyReviewModal({
               <div>
                 <p className="text-xs font-mono text-zinc-500">{dateStr}</p>
                 <p className="mt-1 font-mono text-sm text-zinc-400">
-                  Must: {mustDone} done • {mustPartial} partial • {mustMissed} missed / {mustTotal}{" "}
-                  total
+                  Must: {mustDone} done • {mustPartial} partial • {mustMissed} missed /{" "}
+                  {mustTotal} total
                 </p>
               </div>
+
               <div className="text-right">
-                <p className="text-xs uppercase tracking-wide text-zinc-500">Kết quả hôm nay</p>
+                <p className="text-xs uppercase tracking-wide text-zinc-500">
+                  Kết quả hôm nay
+                </p>
                 <p className="mt-1 text-lg font-semibold text-emerald-300">
                   {result === "achieved"
                     ? "✓ Đạt"
@@ -91,30 +93,11 @@ export function DailyReviewModal({
             </div>
           </div>
 
-          {/* Mood Selection */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-400">Cảm xúc hôm nay</label>
-            <div className="mt-2 flex gap-2">
-              {(["easy", "okay", "hard"] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setMood(m)}
-                  className={`flex-1 rounded px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-all ${
-                    mood === m
-                      ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/50"
-                      : "bg-white/5 text-zinc-400 hover:bg-white/10"
-                  }`}
-                >
-                  {getMoodLabel(m)}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Blockers */}
           <div>
-            <label className="block text-sm font-medium text-zinc-400">Bị kẹt ở đâu?</label>
+            <label className="block text-sm font-medium text-zinc-400">
+              Bị kẹt ở đâu?
+            </label>
             <textarea
               value={blockers}
               onChange={(e) => setBlockers(e.target.value)}
@@ -126,7 +109,9 @@ export function DailyReviewModal({
 
           {/* Reflection */}
           <div>
-            <label className="block text-sm font-medium text-zinc-400">Tóm tắt ngày hôm nay</label>
+            <label className="block text-sm font-medium text-zinc-400">
+              Tóm tắt ngày hôm nay
+            </label>
             <textarea
               value={reflection}
               onChange={(e) => setReflection(e.target.value)}
