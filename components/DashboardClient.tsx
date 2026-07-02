@@ -492,7 +492,7 @@ const handleDeleteCategory = (category: SkillCategory) => {
           onClick={handleOpenReview}
           className="rounded border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-emerald-400 transition-all hover:bg-emerald-500/20"
         >
-          {currentDayReview ? "Edit Review" : "📝 Review Day"}
+          {currentDayReview ? "Edit Review" : "Review Day"}
         </button>
 
         <button
