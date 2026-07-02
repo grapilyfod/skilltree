@@ -351,13 +351,6 @@ const normalizedCategories = initialCategories.map((category) => {
     setShowAddSkillForm(false);
   };
 const handleDeleteSkill = (node: SkillNode) => {
-  const isDefaultSkill = SKILL_NODES.some((skill) => skill.id === node.id);
-
-  if (isDefaultSkill) {
-    window.alert("Không nên xóa default skill. Chỉ xóa custom skill bạn tự tạo.");
-    return;
-  }
-
   const timetables = getTimetablesMap();
 
   const isUsedInSavedTasks = Object.values(timetables).some((dayBlocks) =>
@@ -384,21 +377,14 @@ const handleDeleteSkill = (node: SkillNode) => {
 };
 
 const handleDeleteCategory = (category: SkillCategory) => {
-  const isDefaultCategory = SKILL_CATEGORIES.some(
-    (item) => item.id === category.id,
-  );
-
-  if (isDefaultCategory) {
-    window.alert("Không nên xóa default category. Chỉ xóa custom category bạn tự tạo.");
-    return;
-  }
-
   const childSkills = skillNodesBase.filter(
     (node) => node.categoryId === category.id,
   );
 
   if (childSkills.length > 0) {
-    window.alert("Category này còn skill bên trong. Hãy xóa skill trước rồi mới xóa category.");
+    window.alert(
+      "Category này còn skill bên trong. Hãy xóa skill trước rồi mới xóa category.",
+    );
     return;
   }
 
