@@ -8,7 +8,7 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  title: "SkillForge",
+  title: "SkillTree",
   description: "Personal learning operating system for career development",
 };
 
