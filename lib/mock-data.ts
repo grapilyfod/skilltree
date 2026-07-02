@@ -34,19 +34,19 @@ export const SKILL_CATEGORIES: SkillCategory[] = [
 ];
 
 export const SKILL_NODES: SkillNode[] = [
-  { id: "sk-1", categoryId: "foundations", name: "Computer architecture", mastery: 42 },
-  { id: "sk-2", categoryId: "foundations", name: "Linear algebra for CS", mastery: 65 },
-  { id: "sk-3", categoryId: "foundations", name: "Networking fundamentals", mastery: 20 },
-  { id: "sk-4", categoryId: "low-level-systems", name: "Operating systems", mastery: 35 },
-  { id: "sk-5", categoryId: "low-level-systems", name: "C programming", mastery: 58 },
-  { id: "sk-6", categoryId: "low-level-systems", name: "Embedded firmware", mastery: 15 },
-  { id: "sk-7", categoryId: "security", name: "Cryptography basics", mastery: 24 },
-  { id: "sk-8", categoryId: "security", name: "Memory safety & exploits", mastery: 10 },
-  { id: "sk-9", categoryId: "programming", name: "C++", mastery: 47 },
-  { id: "sk-10", categoryId: "programming", name: "Data structures & algorithms", mastery: 60 },
-  { id: "sk-11", categoryId: "career", name: "Technical English", mastery: 55 },
-  { id: "sk-12", categoryId: "career", name: "GitHub / open source", mastery: 30 },
-  { id: "sk-13", categoryId: "career", name: "Learning discipline", mastery: 0 },
+  { id: "sk-1", categoryId: "foundations", name: "Computer architecture", mastery: 0, targetTaskCount: 30 },
+  { id: "sk-2", categoryId: "foundations", name: "Linear algebra for CS", mastery: 0, targetTaskCount: 30 },
+  { id: "sk-3", categoryId: "foundations", name: "Networking fundamentals", mastery: 0, targetTaskCount: 30 },
+  { id: "sk-4", categoryId: "low-level-systems", name: "Operating systems", mastery: 0, targetTaskCount: 30 },
+  { id: "sk-5", categoryId: "low-level-systems", name: "C programming", mastery: 0, targetTaskCount: 30 },
+  { id: "sk-6", categoryId: "low-level-systems", name: "Embedded firmware", mastery: 0, targetTaskCount: 30 },
+  { id: "sk-7", categoryId: "security", name: "Cryptography basics", mastery: 0, targetTaskCount: 30 },
+  { id: "sk-8", categoryId: "security", name: "Memory safety & exploits", mastery: 0, targetTaskCount: 30 },
+  { id: "sk-9", categoryId: "programming", name: "C++", mastery: 0, targetTaskCount: 30 },
+  { id: "sk-10", categoryId: "programming", name: "Data structures & algorithms", mastery: 0, targetTaskCount: 30 },
+  { id: "sk-11", categoryId: "career", name: "Technical English", mastery: 0, targetTaskCount: 30 },
+  { id: "sk-12", categoryId: "career", name: "GitHub / open source", mastery: 0, targetTaskCount: 30 },
+  { id: "sk-13", categoryId: "career", name: "Learning discipline", mastery: 0, targetTaskCount: 30 },
 ];
 
 export const TODAY_TIMEBLOCKS: TimeBlock[] = [

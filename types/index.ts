@@ -46,6 +46,10 @@ export interface SkillNode {
   name: string;
   /** Mastery percentage, 0–100. */
   mastery: number;
+  /** Number of completed task-equivalents needed for this skill to reach 100%. */
+  targetTaskCount?: number;
+  /** Computed from done + partial tasks; used only for display. */
+  completedEquivalentTasks?: number;
 }
 
 export interface TimeBlock {
@@ -63,6 +67,8 @@ export interface TimeBlock {
   evidenceRequired: string;
   /** Linked skill node this block trains, if any. */
   skillNodeId?: string;
+  carriedFromId?: string;
+  carriedFromDate?: string;
 }
 
 export interface DailyKPISummary {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { SkillCategory, SkillCategoryId } from "@/types";
+import { DEFAULT_TARGET_TASK_COUNT } from "@/lib/skill-mastery";
 
 const INPUT_CLASS =
   "mt-1 w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 transition-colors hover:border-white/20 focus:border-white/30 focus:outline-none";
@@ -12,13 +13,18 @@ const OPTION_CLASS = "bg-zinc-950 text-zinc-100";
 interface AddSkillNodeFormProps {
   categories: SkillCategory[];
   /** Raw user input; caller is responsible for generating the id. */
-  onSubmit: (input: { categoryId: SkillCategoryId; name: string }) => void;
+  onSubmit: (input: {
+    categoryId: SkillCategoryId;
+    name: string;
+    targetTaskCount: number;
+  }) => void;
   onCancel: () => void;
 }
 
 export function AddSkillNodeForm({ categories, onSubmit, onCancel }: AddSkillNodeFormProps) {
   const [categoryId, setCategoryId] = useState<SkillCategoryId>(categories[0]?.id ?? "");
   const [name, setName] = useState("");
+  const [targetTaskCount, setTargetTaskCount] = useState(DEFAULT_TARGET_TASK_COUNT);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,12 +33,22 @@ export function AddSkillNodeForm({ categories, onSubmit, onCancel }: AddSkillNod
       alert("Vui lòng chọn category");
       return;
     }
+
     if (!name.trim()) {
       alert("Vui lòng nhập tên skill");
       return;
     }
 
-    onSubmit({ categoryId, name: name.trim() });
+    if (!Number.isFinite(targetTaskCount) || targetTaskCount < 1) {
+      alert("Target tasks phải lớn hơn hoặc bằng 1");
+      return;
+    }
+
+    onSubmit({
+      categoryId,
+      name: name.trim(),
+      targetTaskCount: Math.round(targetTaskCount),
+    });
   };
 
   return (
@@ -66,6 +82,22 @@ export function AddSkillNodeForm({ categories, onSubmit, onCancel }: AddSkillNod
               placeholder="Ví dụ: Docker basics"
               autoFocus
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-400">
+              Target tasks to reach 100%
+            </label>
+            <input
+              type="number"
+              min={1}
+              value={targetTaskCount}
+              onChange={(e) => setTargetTaskCount(Number(e.target.value))}
+              className={INPUT_CLASS}
+            />
+            <p className="mt-1 text-xs text-zinc-500">
+              Ví dụ: 10 nghĩa là mỗi task đạt = 10%, mỗi task một phần = 5%.
+            </p>
           </div>
 
           <div className="flex justify-end gap-3 pt-2">

@@ -1,5 +1,6 @@
 import type { CategoryColor, SkillNode } from "@/types";
 import { getCategoryStyle } from "@/lib/style-maps";
+import { getSkillTargetTaskCount } from "@/lib/skill-mastery";
 
 interface SkillMasteryBarProps {
   node: SkillNode;
@@ -14,13 +15,20 @@ export function SkillMasteryBar({
 }: SkillMasteryBarProps) {
   const style = getCategoryStyle(node.categoryId, categoryColor);
   const mastery = Math.min(100, Math.max(0, node.mastery));
+  const targetTaskCount = getSkillTargetTaskCount(node);
+  const completedEquivalentTasks = Number((node.completedEquivalentTasks ?? 0).toFixed(1));
 
   return (
     <div className="group flex flex-col gap-1.5">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-medium text-zinc-100">
-          {node.name}
-        </span>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <span className="text-sm font-medium text-zinc-100">
+            {node.name}
+          </span>
+          <p className="mt-0.5 font-mono text-[11px] text-zinc-500">
+            {completedEquivalentTasks} / {targetTaskCount} tasks
+          </p>
+        </div>
 
         <div className="flex items-center gap-2">
           <span className={`font-mono text-xs ${style.text}`}>

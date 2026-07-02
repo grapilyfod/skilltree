@@ -1,61 +1,66 @@
-import type { DailyReview, SkillNode, TimeBlock, SkillCategoryId, SkillProgressDelta } from "@/types";
+import type {
+  DailyReview,
+  SkillCategoryId,
+  SkillNode,
+  SkillProgressDelta,
+  TimeBlock,
+} from "@/types";
 import { SKILL_NODES } from "@/lib/mock-data";
 
-/**
- * Increment 7 scoring.
- * Use whole-number deltas so changes are visible in the 0-100 UI.
- * Mastery is recalculated from source data, not incrementally mutated.
- */
-const SCORE_TABLE: Record<string, Record<string, number>> = {
-  must: {
-    done: 3,
-    partial: 1.5,
-    missed: 0,
-    todo: 0,
-    active: 0,
-  },
-  should: {
-    done: 2,
-    partial: 1,
-    missed: 0,
-    todo: 0,
-    active: 0,
-  },
-  stretch: {
-    done: 1,
-    partial: 0.5,
-    missed: 0,
-    todo: 0,
-    active: 0,
-  },
-};
-
-const DAILY_DISCIPLINE_SKILL_ID = "sk-13";
+export const DEFAULT_TARGET_TASK_COUNT = 30;
 
 function clampMastery(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-function getFallbackSkillNodeId(categoryId: SkillCategoryId, knownNodes: SkillNode[]): string | undefined {
+export function getSkillTargetTaskCount(skill: SkillNode): number {
+  if (
+    typeof skill.targetTaskCount === "number" &&
+    Number.isFinite(skill.targetTaskCount) &&
+    skill.targetTaskCount >= 1
+  ) {
+    return Math.round(skill.targetTaskCount);
+  }
+
+  return DEFAULT_TARGET_TASK_COUNT;
+}
+
+export function normalizeSkillNodeDefinition(skill: SkillNode): SkillNode {
+  return {
+    ...skill,
+    targetTaskCount: getSkillTargetTaskCount(skill),
+  };
+}
+
+export function normalizeSkillNodeDefinitions(skills: SkillNode[]): SkillNode[] {
+  return skills.map(normalizeSkillNodeDefinition);
+}
+
+function getFallbackSkillNodeId(
+  categoryId: SkillCategoryId,
+  knownNodes: SkillNode[],
+): string | undefined {
   return knownNodes.find((node) => node.categoryId === categoryId)?.id;
 }
 
-function isKnownSkillNodeId(skillNodeId: string | undefined, knownNodes: SkillNode[]): boolean {
+function isKnownSkillNodeId(
+  skillNodeId: string | undefined,
+  knownNodes: SkillNode[],
+): boolean {
   return !!skillNodeId && knownNodes.some((node) => node.id === skillNodeId);
 }
 
 /**
  * Old localStorage tasks from Increment 1-6 do not have skillNodeId.
- * If we only fallback to the first node in the category, TCP tasks change
- * "Computer architecture" instead of "Networking fundamentals".
  * This resolver keeps old saved tasks working without requiring localStorage reset.
  *
  * `knownNodes` defaults to the static seed list for old callers, but should be
- * passed the current dynamic skill node list (built-in + custom) wherever
- * available, so custom skillNodeIds resolve correctly instead of being
- * treated as unknown.
+ * passed the current dynamic skill node list wherever available.
  */
-export function resolveSkillNodeId(block: TimeBlock, knownNodes: SkillNode[] = SKILL_NODES): string | undefined {
+export function resolveSkillNodeId(
+  block: TimeBlock,
+  knownNodes: SkillNode[] = SKILL_NODES,
+): string | undefined {
   if (isKnownSkillNodeId(block.skillNodeId, knownNodes)) {
     return block.skillNodeId;
   }
@@ -64,7 +69,12 @@ export function resolveSkillNodeId(block: TimeBlock, knownNodes: SkillNode[] = S
   const kpi = block.kpiGoal.toLowerCase();
   const text = `${title} ${kpi}`;
 
-  if (text.includes("tcp") || text.includes("network") || text.includes("ip ") || text.includes("handshake")) {
+  if (
+    text.includes("tcp") ||
+    text.includes("network") ||
+    text.includes("ip ") ||
+    text.includes("handshake")
+  ) {
     return "sk-3";
   }
 
@@ -72,15 +82,29 @@ export function resolveSkillNodeId(block: TimeBlock, knownNodes: SkillNode[] = S
     return "sk-2";
   }
 
-  if (text.includes("architecture") || text.includes("cpu") || text.includes("computer architecture")) {
+  if (
+    text.includes("architecture") ||
+    text.includes("cpu") ||
+    text.includes("computer architecture")
+  ) {
     return "sk-1";
   }
 
-  if (text.includes("scheduler") || text.includes("operating system") || text.includes(" os ") || text.includes("process")) {
+  if (
+    text.includes("scheduler") ||
+    text.includes("operating system") ||
+    text.includes(" os ") ||
+    text.includes("process")
+  ) {
     return "sk-4";
   }
 
-  if (text.includes("c programming") || text.includes(" c ") || text.includes("malloc") || text.includes("pointer")) {
+  if (
+    text.includes("c programming") ||
+    text.includes(" c ") ||
+    text.includes("malloc") ||
+    text.includes("pointer")
+  ) {
     return "sk-5";
   }
 
@@ -88,11 +112,20 @@ export function resolveSkillNodeId(block: TimeBlock, knownNodes: SkillNode[] = S
     return "sk-6";
   }
 
-  if (text.includes("crypto") || text.includes("cipher") || text.includes("ecb") || text.includes("cbc")) {
+  if (
+    text.includes("crypto") ||
+    text.includes("cipher") ||
+    text.includes("ecb") ||
+    text.includes("cbc")
+  ) {
     return "sk-7";
   }
 
-  if (text.includes("exploit") || text.includes("memory safety") || text.includes("buffer overflow")) {
+  if (
+    text.includes("exploit") ||
+    text.includes("memory safety") ||
+    text.includes("buffer overflow")
+  ) {
     return "sk-8";
   }
 
@@ -100,7 +133,12 @@ export function resolveSkillNodeId(block: TimeBlock, knownNodes: SkillNode[] = S
     return "sk-9";
   }
 
-  if (text.includes("heap") || text.includes("data structure") || text.includes("algorithm") || text.includes("dsa")) {
+  if (
+    text.includes("heap") ||
+    text.includes("data structure") ||
+    text.includes("algorithm") ||
+    text.includes("dsa")
+  ) {
     return "sk-10";
   }
 
@@ -108,7 +146,12 @@ export function resolveSkillNodeId(block: TimeBlock, knownNodes: SkillNode[] = S
     return "sk-11";
   }
 
-  if (text.includes("github") || text.includes("commit") || text.includes("portfolio") || text.includes("open source")) {
+  if (
+    text.includes("github") ||
+    text.includes("commit") ||
+    text.includes("portfolio") ||
+    text.includes("open source")
+  ) {
     return "sk-12";
   }
 
@@ -116,34 +159,56 @@ export function resolveSkillNodeId(block: TimeBlock, knownNodes: SkillNode[] = S
 }
 
 /**
- * Calculate skill delta for a single task block.
+ * Increment 10 task-equivalent scoring.
+ * Done = 1, Partial = 0.5, Failed/Missed/Todo/Active = 0.
+ * Priority and legacy masteryPoints are intentionally ignored.
  */
-export function calculateTaskSkillDelta(block: TimeBlock): number {
-  const score = SCORE_TABLE[block.priority]?.[block.status];
-  return score ?? 0;
+export function calculateTaskEquivalentProgress(block: TimeBlock): number {
+  if (block.status === "done") {
+    return 1;
+  }
+
+  if (block.status === "partial") {
+    return 0.5;
+  }
+
+  return 0;
 }
 
 /**
- * Recalculate skill mastery from all saved timetables + daily reviews.
- * This avoids double-counting when the user changes status or edits/deletes tasks.
- *
- * `skillNodesBase` is the current set of skill definitions (built-in + custom,
- * loaded from localStorage). Every node in it is included in the result, even
- * custom skills that haven't been trained by any task yet (mastery stays at
- * their base value, e.g. 0 for freshly created skills).
+ * Legacy name kept for compatibility with older imports.
+ * It now returns task-equivalent progress, not arbitrary mastery points.
+ */
+export function calculateTaskSkillDelta(block: TimeBlock): number {
+  return calculateTaskEquivalentProgress(block);
+}
+
+/**
+ * Recalculate skill mastery from all saved timetables.
+ * Mastery model:
+ *   mastery % = completedEquivalentTasks / targetTaskCount * 100
  */
 export function calculateSkillMasteryFromTimetables(
   timetables: Record<string, TimeBlock[]>,
-  dailyReviews: Record<string, DailyReview>,
+  _dailyReviews: Record<string, DailyReview>,
   skillNodesBase: SkillNode[] = SKILL_NODES,
 ): SkillNode[] {
+  const normalizedSkills = normalizeSkillNodeDefinitions(skillNodesBase);
   const masteryMap = new Map<string, SkillNode>(
-    skillNodesBase.map((node) => [node.id, { ...node }]),
+    normalizedSkills.map((node) => [
+      node.id,
+      {
+        ...node,
+        mastery: 0,
+        completedEquivalentTasks: 0,
+        targetTaskCount: getSkillTargetTaskCount(node),
+      },
+    ]),
   );
 
   for (const blocks of Object.values(timetables)) {
     for (const block of blocks) {
-      const skillNodeId = resolveSkillNodeId(block, skillNodesBase);
+      const skillNodeId = resolveSkillNodeId(block, normalizedSkills);
       if (!skillNodeId) {
         continue;
       }
@@ -153,28 +218,29 @@ export function calculateSkillMasteryFromTimetables(
         continue;
       }
 
-      skill.mastery += calculateTaskSkillDelta(block);
+      skill.completedEquivalentTasks =
+        (skill.completedEquivalentTasks ?? 0) + calculateTaskEquivalentProgress(block);
     }
   }
 
-  const discipline = masteryMap.get(DAILY_DISCIPLINE_SKILL_ID);
-  if (discipline) {
-    for (const review of Object.values(dailyReviews)) {
-      if (review.reviewedAt) {
-        discipline.mastery += 1;
-      }
-    }
-  }
+  return Array.from(masteryMap.values()).map((skill) => {
+    const targetTaskCount = getSkillTargetTaskCount(skill);
+    const completedEquivalentTasks = Number((skill.completedEquivalentTasks ?? 0).toFixed(1));
+    const mastery = targetTaskCount > 0
+      ? (completedEquivalentTasks / targetTaskCount) * 100
+      : 0;
 
-  return Array.from(masteryMap.values()).map((skill) => ({
-    ...skill,
-    mastery: clampMastery(skill.mastery),
-  }));
+    return {
+      ...skill,
+      targetTaskCount,
+      completedEquivalentTasks,
+      mastery: clampMastery(mastery),
+    };
+  });
 }
 
 /**
  * Legacy helper kept for compatibility with older imports.
- * New Increment 7 UI should use calculateSkillMasteryFromTimetables instead.
  */
 export function calculateDailySkillDeltas(
   dateStr: string,

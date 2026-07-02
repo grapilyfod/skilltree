@@ -1,4 +1,5 @@
 import type { SkillCategory, SkillNode } from "@/types";
+import { normalizeSkillNodeDefinitions } from "@/lib/skill-mastery";
 
 const CATEGORIES_KEY = "skillforge_categories";
 const SKILL_NODES_KEY = "skillforge_skill_nodes";
@@ -57,7 +58,7 @@ export function getStoredSkillNodeDefinitions(): SkillNode[] {
       return [];
     }
     const parsed = JSON.parse(stored) as SkillNode[];
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? normalizeSkillNodeDefinitions(parsed) : [];
   } catch (err) {
     console.error("Failed to read skill nodes from localStorage:", err);
     return [];
@@ -73,7 +74,10 @@ export function saveSkillNodeDefinitions(nodes: SkillNode[]): void {
   }
 
   try {
-    window.localStorage.setItem(SKILL_NODES_KEY, JSON.stringify(nodes));
+    window.localStorage.setItem(
+      SKILL_NODES_KEY,
+      JSON.stringify(normalizeSkillNodeDefinitions(nodes)),
+    );
   } catch (err) {
     console.error("Failed to save skill nodes to localStorage:", err);
   }
