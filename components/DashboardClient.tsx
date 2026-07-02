@@ -1,5 +1,5 @@
 "use client";
-
+import { getRandomCategoryColor } from "@/lib/style-maps";
 import { useState, useEffect, useMemo } from "react";
 import type { TimeBlock, TaskStatus, DailyReview, SkillCategory, SkillNode, SkillCategoryId } from "@/types";
 import { TimetableList } from "@/components/TimetableList";
@@ -36,6 +36,8 @@ import {
   saveSkillNodeDefinitions,
 } from "@/lib/skill-tree-storage";
 
+const PROGRESS_PANELS_VISIBILITY_KEY = "skillforge_show_progress_panels";
+
 interface DashboardClientProps {
   initialBlocks: TimeBlock[];
 }
@@ -48,7 +50,8 @@ export function DashboardClient({ initialBlocks }: DashboardClientProps) {
   const [editingBlock, setEditingBlock] = useState<TimeBlock | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [dailyReviews, setDailyReviews] = useState<Record<string, DailyReview>>({});
-
+  const [showProgressPanels, setShowProgressPanels] = useState(true);
+  const [isProgressPreferenceLoaded, setIsProgressPreferenceLoaded] = useState(false);
   // --- Custom Skill Tree Builder state (Increment 9) ---
   // Seeded from SKILL_CATEGORIES / SKILL_NODES on first-ever load, then
   // persisted to localStorage so custom categories/skills survive refresh.
@@ -102,13 +105,28 @@ export function DashboardClient({ initialBlocks }: DashboardClientProps) {
    */
   useEffect(() => {
     const storedCategories = getStoredSkillCategories();
-    const storedNodes = getStoredSkillNodeDefinitions();
+const storedNodes = getStoredSkillNodeDefinitions();
 
-    const initialCategories = storedCategories.length > 0 ? storedCategories : SKILL_CATEGORIES;
-    const initialNodes = storedNodes.length > 0 ? storedNodes : SKILL_NODES;
+const initialCategories =
+  storedCategories.length > 0 ? storedCategories : SKILL_CATEGORIES;
+
+const initialNodes = storedNodes.length > 0 ? storedNodes : SKILL_NODES;
+
+const defaultCategoryIds = new Set(SKILL_CATEGORIES.map((category) => category.id));
+
+const normalizedCategories = initialCategories.map((category) => {
+  if (!defaultCategoryIds.has(category.id) && !category.color) {
+    return {
+      ...category,
+      color: getRandomCategoryColor(),
+    };
+  }
+
+  return category;
+});
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSkillCategories(initialCategories);
+    setSkillCategories(normalizedCategories);
     setSkillNodesBase(initialNodes);
     setIsSkillTreeLoaded(true);
   }, []);
@@ -169,7 +187,29 @@ export function DashboardClient({ initialBlocks }: DashboardClientProps) {
       setTimetable(selectedDateStr, blocks);
     }
   }, [blocks, isLoaded, selectedDateStr]);
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
 
+    const savedValue = window.localStorage.getItem(PROGRESS_PANELS_VISIBILITY_KEY);
+
+    if (savedValue !== null) {
+      setShowProgressPanels(savedValue === "true");
+    }
+
+    setIsProgressPreferenceLoaded(true);
+  }, []);
+  useEffect(() => {
+    if (typeof window === "undefined" || !isProgressPreferenceLoaded) {
+      return;
+    }
+
+    window.localStorage.setItem(
+      PROGRESS_PANELS_VISIBILITY_KEY,
+      String(showProgressPanels),
+    );
+  }, [showProgressPanels, isProgressPreferenceLoaded]);
   /**
    * Handle status change for a single timeblock.
    */
@@ -280,14 +320,20 @@ export function DashboardClient({ initialBlocks }: DashboardClientProps) {
    * unique and consistent regardless of which form triggered it.
    */
   const handleAddCategory = (input: { name: string; description: string }) => {
-    const newCategory: SkillCategory = {
-      id: `cat-${crypto.randomUUID()}`,
-      label: input.name,
-      description: input.description,
-    };
-    setSkillCategories((prev) => [...prev, newCategory]);
-    setShowAddCategoryForm(false);
+  const newCategory: SkillCategory = {
+    id: `cat-${crypto.randomUUID()}`,
+    label: input.name,
+    description: input.description,
+    color: getRandomCategoryColor(
+      skillCategories
+        .map((category) => category.color)
+        .filter((color): color is NonNullable<typeof color> => Boolean(color)),
+    ),
   };
+
+  setSkillCategories((prev) => [...prev, newCategory]);
+  setShowAddCategoryForm(false);
+};
 
   /**
    * Add a new custom skill node inside an existing category (built-in or custom).
@@ -304,7 +350,82 @@ export function DashboardClient({ initialBlocks }: DashboardClientProps) {
     setSkillNodesBase((prev) => [...prev, newSkill]);
     setShowAddSkillForm(false);
   };
+const handleDeleteSkill = (node: SkillNode) => {
+  const isDefaultSkill = SKILL_NODES.some((skill) => skill.id === node.id);
 
+  if (isDefaultSkill) {
+    window.alert("Không nên xóa default skill. Chỉ xóa custom skill bạn tự tạo.");
+    return;
+  }
+
+  const timetables = getTimetablesMap();
+
+  const isUsedInSavedTasks = Object.values(timetables).some((dayBlocks) =>
+    dayBlocks.some((block) => block.skillNodeId === node.id),
+  );
+
+  const isUsedToday = blocks.some((block) => block.skillNodeId === node.id);
+
+  if (isUsedInSavedTasks || isUsedToday) {
+    window.alert(
+      `Skill "${node.name}" đang được dùng trong task. Hãy edit/xóa các task đó trước.`,
+    );
+    return;
+  }
+
+  if (
+    typeof window !== "undefined" &&
+    window.confirm(`Xóa skill "${node.name}"?`)
+  ) {
+    setSkillNodesBase((prev) =>
+      prev.filter((skill) => skill.id !== node.id),
+    );
+  }
+};
+
+const handleDeleteCategory = (category: SkillCategory) => {
+  const isDefaultCategory = SKILL_CATEGORIES.some(
+    (item) => item.id === category.id,
+  );
+
+  if (isDefaultCategory) {
+    window.alert("Không nên xóa default category. Chỉ xóa custom category bạn tự tạo.");
+    return;
+  }
+
+  const childSkills = skillNodesBase.filter(
+    (node) => node.categoryId === category.id,
+  );
+
+  if (childSkills.length > 0) {
+    window.alert("Category này còn skill bên trong. Hãy xóa skill trước rồi mới xóa category.");
+    return;
+  }
+
+  const timetables = getTimetablesMap();
+
+  const isUsedInSavedTasks = Object.values(timetables).some((dayBlocks) =>
+    dayBlocks.some((block) => block.categoryId === category.id),
+  );
+
+  const isUsedToday = blocks.some((block) => block.categoryId === category.id);
+
+  if (isUsedInSavedTasks || isUsedToday) {
+    window.alert(
+      `Category "${category.label}" đang được dùng trong task. Hãy edit/xóa các task đó trước.`,
+    );
+    return;
+  }
+
+  if (
+    typeof window !== "undefined" &&
+    window.confirm(`Xóa category "${category.label}"?`)
+  ) {
+    setSkillCategories((prev) =>
+      prev.filter((item) => item.id !== category.id),
+    );
+  }
+};
   if (!isLoaded || !isSkillTreeLoaded) {
     return null;
   }
@@ -315,13 +436,21 @@ export function DashboardClient({ initialBlocks }: DashboardClientProps) {
 
       <KPISummaryBar blocks={blocks} summary={{ ...kpiSummary, streakDays: realStreak }} />
 
-      <div className="flex gap-3 justify-end">
+      <div className="flex flex-wrap justify-end gap-3">
+        <button
+          onClick={() => setShowProgressPanels((current) => !current)}
+          className="rounded border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-sky-300 transition-all hover:bg-sky-500/20"
+        >
+          {showProgressPanels ? "Ẩn progress" : "Hiện progress"}
+        </button>
+
         <button
           onClick={handleOpenReview}
           className="rounded border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-emerald-400 transition-all hover:bg-emerald-500/20"
         >
           {currentDayReview ? "✎ Edit Review" : "📝 Review Day"}
         </button>
+
         <button
           onClick={handleResetDay}
           className="rounded border border-white/[0.06] bg-white/5 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zinc-400 transition-all hover:bg-white/10 hover:text-zinc-300"
@@ -330,11 +459,15 @@ export function DashboardClient({ initialBlocks }: DashboardClientProps) {
         </button>
       </div>
 
-      {currentDayReview && (
-        <DailyReviewCard review={currentDayReview} onEdit={handleOpenReview} />
-      )}
+      {showProgressPanels && (
+        <>
+          {currentDayReview && (
+            <DailyReviewCard review={currentDayReview} onEdit={handleOpenReview} />
+          )}
 
-      <WeeklySummaryCard summary={weeklySummary} />
+          <WeeklySummaryCard summary={weeklySummary} />
+        </>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
         <section className="flex flex-col gap-3">
@@ -372,7 +505,12 @@ export function DashboardClient({ initialBlocks }: DashboardClientProps) {
               </button>
             </div>
           </div>
-          <SkillTree categories={skillCategories} nodes={calculatedSkillNodes} />
+          <SkillTree
+            categories={skillCategories}
+            nodes={calculatedSkillNodes}
+            onDeleteCategory={handleDeleteCategory}
+            onDeleteSkill={handleDeleteSkill}
+          />
         </section>
       </div>
 

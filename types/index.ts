@@ -17,11 +17,27 @@ export type TaskPriority = "must" | "should" | "stretch";
  */
 export type SkillCategoryId = string;
 
+export type CategoryColor =
+  | "indigo"
+  | "purple"
+  | "fuchsia"
+  | "pink"
+  | "orange"
+  | "blue"
+  | "teal"
+  | "emerald"
+  | "cyan"
+  | "sky"
+  | "violet"
+  | "amber"
+  | "rose"
+  | "lime";
+
 export interface SkillCategory {
-  id: SkillCategoryId;
+  id: string;
   label: string;
-  /** Short one-line description of what this branch covers. */
   description: string;
+  color?: CategoryColor;
 }
 
 export interface SkillNode {

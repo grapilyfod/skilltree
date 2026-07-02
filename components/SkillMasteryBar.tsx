@@ -1,36 +1,50 @@
-import type { SkillNode } from "@/types";
+import type { CategoryColor, SkillNode } from "@/types";
 import { getCategoryStyle } from "@/lib/style-maps";
 
 interface SkillMasteryBarProps {
   node: SkillNode;
+  categoryColor?: CategoryColor;
+  onDelete?: (node: SkillNode) => void;
 }
 
-const TICKS = [10, 20, 30, 40, 50, 60, 70, 80, 90];
-
-export function SkillMasteryBar({ node }: SkillMasteryBarProps) {
-  const style = getCategoryStyle(node.categoryId);
-  const clamped = Math.min(100, Math.max(0, node.mastery));
+export function SkillMasteryBar({
+  node,
+  categoryColor,
+  onDelete,
+}: SkillMasteryBarProps) {
+  const style = getCategoryStyle(node.categoryId, categoryColor);
+  const mastery = Math.min(100, Math.max(0, node.mastery));
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-baseline justify-between">
-        <span className="text-sm text-zinc-200">{node.name}</span>
-        <span className={`font-mono text-xs ${style.text}`}>{clamped}%</span>
-      </div>
-      <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/[0.06]">
-        <div
-          className={`h-full rounded-full ${style.bar} transition-[width] duration-500`}
-          style={{ width: `${clamped}%` }}
-        />
-        <div className="pointer-events-none absolute inset-0">
-          {TICKS.map((tick) => (
-            <span
-              key={tick}
-              className="absolute top-0 h-full w-px bg-black/30"
-              style={{ left: `${tick}%` }}
-            />
-          ))}
+    <div className="group flex flex-col gap-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-sm font-medium text-zinc-100">
+          {node.name}
+        </span>
+
+        <div className="flex items-center gap-2">
+          <span className={`font-mono text-xs ${style.text}`}>
+            {mastery}%
+          </span>
+
+          {onDelete && (
+            <button
+              type="button"
+              title={`Xóa skill ${node.name}`}
+              onClick={() => onDelete(node)}
+              className="flex h-4 w-4 items-center justify-center rounded-full border border-red-500/20 text-[10px] font-bold text-red-300 opacity-0 transition hover:bg-red-500/10 group-hover:opacity-100"
+            >
+              −
+            </button>
+          )}
         </div>
+      </div>
+
+      <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+        <div
+          className={`h-full rounded-full ${style.bar} transition-all`}
+          style={{ width: `${mastery}%` }}
+        />
       </div>
     </div>
   );
