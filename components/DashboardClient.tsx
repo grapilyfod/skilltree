@@ -68,13 +68,27 @@ export function DashboardClient() {
   const realStreak = calculateStreak(dailyReviews);
 
   const calculatedSkillNodes = useMemo(() => {
-    const timetables = getTimetablesMap();
+    try {
+      const timetables = getTimetablesMap();
 
-    // Include current React state immediately so Skill Tree updates as soon as
-    // the user changes task status/adds/edits/deletes a task.
-    timetables[selectedDateStr] = blocks;
+      timetables[selectedDateStr] = blocks;
 
-    return calculateSkillMasteryFromTimetables(timetables, dailyReviews, skillNodesBase);
+      return calculateSkillMasteryFromTimetables(
+        timetables,
+        dailyReviews,
+        skillNodesBase,
+      );
+    } catch (error) {
+      console.error("Failed to calculate skill mastery", error);
+
+      return calculateSkillMasteryFromTimetables(
+        {
+          [selectedDateStr]: blocks,
+        },
+        dailyReviews,
+        skillNodesBase,
+      );
+    }
   }, [blocks, dailyReviews, selectedDateStr, skillNodesBase]);
   const [confirmDialog, setConfirmDialog] = useState<{
     title: string;
@@ -86,16 +100,30 @@ export function DashboardClient() {
     onConfirm: () => void;
   } | null>(null);
   const weeklySummary = useMemo(() => {
-    const timetables = getTimetablesMap();
-    timetables[selectedDateStr] = blocks;
+    try {
+      const timetables = getTimetablesMap();
+      timetables[selectedDateStr] = blocks;
 
-    return calculateWeeklySummary(
-      timetables,
-      dailyReviews,
-      selectedDateStr,
-      skillNodesBase,
-      skillCategories,
-    );
+      return calculateWeeklySummary(
+        timetables,
+        dailyReviews,
+        selectedDateStr,
+        skillNodesBase,
+        skillCategories,
+      );
+    } catch (error) {
+      console.error("Failed to calculate weekly summary", error);
+
+      return calculateWeeklySummary(
+        {
+          [selectedDateStr]: blocks,
+        },
+        dailyReviews,
+        selectedDateStr,
+        skillNodesBase,
+        skillCategories,
+      );
+    }
   }, [blocks, dailyReviews, selectedDateStr, skillNodesBase, skillCategories]);
   const showAlertDialog = (
     title: string,
@@ -183,10 +211,17 @@ export function DashboardClient() {
    * Load daily reviews on mount.
    */
   useEffect(() => {
-    const reviews = getDailyReviews();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setDailyReviews(reviews);
-    setIsDailyReviewsLoaded(true);
+    try {
+      const reviews = getDailyReviews();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDailyReviews(reviews);
+    } catch (error) {
+      console.error("Failed to load daily reviews", error);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDailyReviews({});
+    } finally {
+      setIsDailyReviewsLoaded(true);
+    }
   }, []);
 
   /**
@@ -248,11 +283,20 @@ const normalizedCategories = initialCategories.map((category) => {
    * Load timetable for selected date from localStorage on mount and when date changes.
    */
   useEffect(() => {
-    const saved = getTimetable(selectedDateStr);
+    try {
+      const saved = getTimetable(selectedDateStr);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setBlocksState(saved);
-    setIsLoaded(true);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setBlocksState(saved);
+    } catch (error) {
+      console.error("Failed to load timetable", error);
+
+      // fallback để app vẫn mở được
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setBlocksState([]);
+    } finally {
+      setIsLoaded(true);
+    }
   }, [selectedDateStr]);
 
   /**
@@ -571,8 +615,17 @@ const handleDeleteCategory = (category: SkillCategory) => {
 };
   if (!isLoaded || !isSkillTreeLoaded) {
     return (
-      <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 text-center text-sm text-zinc-400">
-        Đang tải dashboard...
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 text-sm text-zinc-400">
+        <p className="font-semibold text-zinc-200">Đang tải dashboard...</p>
+        <p className="mt-2 font-mono text-xs">
+          isLoaded: {String(isLoaded)}
+        </p>
+        <p className="font-mono text-xs">
+          isSkillTreeLoaded: {String(isSkillTreeLoaded)}
+        </p>
+        <p className="font-mono text-xs">
+          isDailyReviewsLoaded: {String(isDailyReviewsLoaded)}
+        </p>
       </div>
     );
   }
