@@ -63,7 +63,7 @@ export function TimeBlockCard({
 
   return (
     <li
-      className={`group relative rounded-lg border bg-[#101216] p-4 transition-colors ${
+      className={`group relative rounded-lg border bg-[#101216] p-3 transition-colors sm:p-4  ${
         isNow ? `${categoryStyle.border} bg-[#14171d]` : "border-white/[0.06]"
       }`}
     >
@@ -73,7 +73,7 @@ export function TimeBlockCard({
         />
       )}
 
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2 font-mono text-xs text-zinc-500">
             <span>{block.startTime}</span>
@@ -93,7 +93,7 @@ export function TimeBlockCard({
             )}
           </div>
 
-          <h3 className="text-sm font-medium text-zinc-100">
+          <h3 className="break-words text-sm font-medium text-zinc-100">
             {block.taskTitle}
           </h3>
 
@@ -108,11 +108,11 @@ export function TimeBlockCard({
           </div>
         </div>
 
-        <div className="flex shrink-0 items-start gap-2">
+        <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:shrink-0 sm:items-start sm:justify-start">
           <StatusBadge status={block.status} />
 
           {(onEdit || onDelete) && (
-            <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <div className="flex gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
               {onEdit && (
                 <button
                   type="button"
@@ -198,11 +198,11 @@ export function TimeBlockCard({
       )}
 
       {onStatusChange && (
-        <div className="mt-4 flex flex-wrap gap-2 border-t border-white/[0.06] pt-3">
+        <div className="mt-4 grid grid-cols-1 gap-2 border-t border-white/[0.06] pt-3 sm:grid-cols-3">
           <button
             type="button"
             onClick={() => onStatusChange(block.id, "done")}
-            className={`flex-1 rounded px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-all ${
+            className={`w-full rounded px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-all ${
               block.status === "done"
                 ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/50"
                 : "bg-white/5 text-zinc-400 hover:bg-white/10"
@@ -214,7 +214,7 @@ export function TimeBlockCard({
           <button
             type="button"
             onClick={() => onStatusChange(block.id, "partial")}
-            className={`flex-1 rounded px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-all ${
+            className={`w-full rounded px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-all ${
               block.status === "partial"
                 ? "bg-sky-500/20 text-sky-300 ring-1 ring-sky-500/50"
                 : "bg-white/5 text-zinc-400 hover:bg-white/10"
@@ -226,7 +226,7 @@ export function TimeBlockCard({
           <button
             type="button"
             onClick={() => onStatusChange(block.id, "missed")}
-            className={`flex-1 rounded px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-all ${
+            className={`w-full rounded px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-all ${
               block.status === "missed"
                 ? "bg-red-500/20 text-red-300 ring-1 ring-red-500/50"
                 : "bg-white/5 text-zinc-400 hover:bg-white/10"

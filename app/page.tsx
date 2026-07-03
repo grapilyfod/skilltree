@@ -6,7 +6,7 @@ const logoFont = Lobster({
 });
 export default function DashboardPage() {
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 overflow-x-hidden px-3 py-5 sm:gap-6 sm:px-6 sm:py-8 lg:px-8">
       <header className="px-6 py-6 text-center">
         <div className="relative mx-auto flex max-w-xl flex-col items-center">
           <h1

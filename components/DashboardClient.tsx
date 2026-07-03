@@ -579,7 +579,7 @@ const handleDeleteCategory = (category: SkillCategory) => {
 
       <KPISummaryBar blocks={blocks} summary={{ ...kpiSummary, streakDays: realStreak }} />
 
-      <div className="flex flex-wrap justify-end gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end sm:gap-3">
         <button
           onClick={() => setShowProgressPanels((current) => !current)}
           className="rounded border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-sky-300 transition-all hover:bg-sky-500/20"
@@ -613,15 +613,15 @@ const handleDeleteCategory = (category: SkillCategory) => {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
         <section className="flex flex-col gap-3">
-          <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-sm font-medium uppercase tracking-wide text-zinc-500">
-              Lịch trình {selectedDateStr}
+              Lịch trình hôm nay
             </h2>
 
             <button
               type="button"
               onClick={handleCopyTasksToTomorrow}
-              className="rounded border border-violet-500/30 bg-violet-500/10 px-3 py-1.5 text-xs uppercase tracking-wide text-violet-200 transition hover:border-violet-400/50 hover:bg-violet-500/20 hover:text-violet-100"
+              className="w-full rounded border border-violet-500/30 bg-violet-500/10 px-2 py-1 text-[10px] uppercase tracking-wide text-violet-200 transition hover:border-violet-400/50 hover:bg-violet-500/20 hover:text-violet-100 sm:w-auto"
             >
               Copy tasks sang ngày mai
             </button>

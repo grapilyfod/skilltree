@@ -50,7 +50,7 @@ export function TimetableList({
           <button
             type="button"
             onClick={onAddTask}
-            className="rounded border border-white/[0.06] bg-white/5 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 transition-all hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-300"
+            className="min-h-10 w-full rounded border border-white/[0.06] bg-white/5 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400 transition-all hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-300"
           >
             + Thêm Task
           </button>
