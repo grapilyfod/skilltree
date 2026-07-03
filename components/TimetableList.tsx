@@ -31,11 +31,9 @@ export function TimetableList({
   onEdit,
   onDelete,
 }: TimetableListProps) {
-  const [now, setNow] = useState<Date | null>(null);
+  const [now, setNow] = useState<Date>(() => new Date());
 
   useEffect(() => {
-    setNow(new Date());
-
     const intervalId = setInterval(() => setNow(new Date()), 1000 * 15);
 
     return () => clearInterval(intervalId);
@@ -65,7 +63,7 @@ export function TimetableList({
           <TimeBlockCard
             key={block.id}
             block={block}
-            isNow={now !== null && isBlockActiveAt(block, now)}
+            isNow={isBlockActiveAt(block, now)}
             categories={categories}
             skillNodes={skillNodes}
             onStatusChange={onStatusChange}

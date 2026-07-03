@@ -41,12 +41,7 @@ import {
 } from "@/lib/skill-tree-storage";
 
 const PROGRESS_PANELS_VISIBILITY_KEY = "skillforge_show_progress_panels";
-const DEFAULT_TIMETABLE_SEEDED_KEY = "skillforge_default_timetable_seeded";
-interface DashboardClientProps {
-  initialBlocks: TimeBlock[];
-}
-
-export function DashboardClient({ initialBlocks }: DashboardClientProps) {
+export function DashboardClient() {
   const [selectedDate, setSelectedDate] = useState<Date>(getToday());
   const [blocks, setBlocksState] = useState<TimeBlock[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -88,6 +83,7 @@ export function DashboardClient({ initialBlocks }: DashboardClientProps) {
     variant?: "danger" | "warning" | "info";
     onConfirm: () => void;
   } | null>(null);
+  
   const weeklySummary = useMemo(() => {
     const timetables = getTimetablesMap();
     timetables[selectedDateStr] = blocks;
@@ -205,31 +201,10 @@ const normalizedCategories = initialCategories.map((category) => {
   useEffect(() => {
     const saved = getTimetable(selectedDateStr);
 
-    if (saved.length > 0) {
-      setBlocksState(saved);
-    } else {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const isSelectedDateToday = formatDate(selectedDate) === formatDate(today);
-
-      const hasSeededDefaultTimetable =
-        typeof window !== "undefined" &&
-        window.localStorage.getItem(DEFAULT_TIMETABLE_SEEDED_KEY) === "true";
-
-      if (isSelectedDateToday && initialBlocks.length > 0 && !hasSeededDefaultTimetable) {
-        setBlocksState(initialBlocks);
-
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem(DEFAULT_TIMETABLE_SEEDED_KEY, "true");
-        }
-      } else {
-        setBlocksState([]);
-      }
-    }
-
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setBlocksState(saved);
     setIsLoaded(true);
-  }, [selectedDateStr, selectedDate, initialBlocks]);
+  }, [selectedDateStr]);
 
   /**
    * Persist blocks to localStorage whenever they change for the selected date.
@@ -344,14 +319,7 @@ const normalizedCategories = initialCategories.map((category) => {
           return next;
         });
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        if (formatDate(selectedDate) === formatDate(today)) {
-          setBlocksState(initialBlocks);
-        } else {
-          setBlocksState([]);
-        }
+      setBlocksState([]);
       },
     );
   };
@@ -396,6 +364,9 @@ const normalizedCategories = initialCategories.map((category) => {
           ...block,
           id: crypto.randomUUID(),
           status: "todo",
+          evidenceNote: "",
+          evidenceLink: "",
+          reflection: "",
           carriedFromId: block.id,
           carriedFromDate: selectedDateStr,
         }));
@@ -643,6 +614,7 @@ const handleDeleteCategory = (category: SkillCategory) => {
           skillCategories={skillCategories}
           skillNodes={skillNodesBase}
           onSubmit={handleSaveBlock}
+          onAlert={showAlertDialog}
           onCancel={() => {
             setShowForm(false);
             setEditingBlock(null);

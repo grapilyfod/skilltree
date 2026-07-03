@@ -1,8 +1,8 @@
-import type { SkillCategory, SkillNode, TimeBlock, TaskStatus } from "@/types";
+import type { SkillCategory, SkillNode, TaskStatus, TimeBlock } from "@/types";
 import { getCategoryStyle, PRIORITY_STYLES } from "@/lib/style-maps";
 import { resolveSkillNodeId } from "@/lib/skill-mastery";
-import { StatusBadge } from "@/components/StatusBadge";
 import { CategoryTag } from "@/components/CategoryTag";
+import { StatusBadge } from "@/components/StatusBadge";
 
 interface TimeBlockCardProps {
   block: TimeBlock;
@@ -20,6 +20,28 @@ interface TimeBlockCardProps {
   onDelete?: (blockId: string) => void;
 }
 
+function getSafeEvidenceUrl(value?: string): string | null {
+  const trimmed = value?.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const url = new URL(normalized);
+
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return null;
+    }
+
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 export function TimeBlockCard({
   block,
   isNow,
@@ -33,6 +55,10 @@ export function TimeBlockCard({
   const skillNodeId = resolveSkillNodeId(block, skillNodes);
   const skillNode = skillNodes.find((node) => node.id === skillNodeId);
   const priorityStyle = PRIORITY_STYLES[block.priority];
+  const evidenceLink = getSafeEvidenceUrl(block.evidenceLink);
+  const hasEvidenceDetails = Boolean(
+    block.evidenceNote?.trim() || block.evidenceLink?.trim() || block.reflection?.trim(),
+  );
 
   return (
     <li
@@ -119,10 +145,56 @@ export function TimeBlockCard({
         </div>
 
         <div>
-          <dt className="text-zinc-600">Bằng chứng</dt>
+          <dt className="text-zinc-600">Yêu cầu bằng chứng</dt>
           <dd>{block.evidenceRequired}</dd>
         </div>
       </dl>
+
+      {hasEvidenceDetails && (
+        <div className="mt-3 grid grid-cols-1 gap-2 border-t border-white/[0.06] pt-3 text-xs sm:grid-cols-2">
+          {block.evidenceNote?.trim() && (
+            <div className="rounded border border-emerald-500/20 bg-emerald-500/5 p-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-emerald-300">
+                Evidence note
+              </p>
+              <p className="mt-1 whitespace-pre-wrap text-zinc-300">
+                {block.evidenceNote}
+              </p>
+            </div>
+          )}
+
+          {block.evidenceLink?.trim() && (
+            <div className="rounded border border-sky-500/20 bg-sky-500/5 p-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-300">
+                Link bằng chứng
+              </p>
+              {evidenceLink ? (
+                <a
+                  href={evidenceLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 inline-flex max-w-full truncate text-sky-200 underline-offset-2 hover:underline"
+                >
+                  Mở link bằng chứng
+                </a>
+              ) : (
+                <p className="mt-1 break-all text-zinc-300">{block.evidenceLink}</p>
+              )}
+            </div>
+          )}
+
+          {block.reflection?.trim() && (
+            <div className="rounded border border-violet-500/20 bg-violet-500/5 p-2 sm:col-span-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-violet-300">
+                Reflection
+              </p>
+              <p className="mt-1 whitespace-pre-wrap text-zinc-300">
+                {block.reflection}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {onStatusChange && (
         <div className="mt-4 flex flex-wrap gap-2 border-t border-white/[0.06] pt-3">

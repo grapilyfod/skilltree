@@ -65,6 +65,12 @@ export interface TimeBlock {
   kpiGoal: string;
   /** What the user must submit to prove completion. */
   evidenceRequired: string;
+  /** Actual proof or notes submitted after doing the task. */
+  evidenceNote?: string;
+  /** External proof link, for example GitHub, Google Drive, Notion, or an article. */
+  evidenceLink?: string;
+  /** Short self-reflection after completing or attempting this task. */
+  reflection?: string;
   /** Linked skill node this block trains, if any. */
   skillNodeId?: string;
   carriedFromId?: string;

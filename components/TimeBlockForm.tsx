@@ -1,8 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import type { SkillCategory, SkillNode, TimeBlock, SkillCategoryId, TaskPriority } from "@/types";
+import type {
+  SkillCategory,
+  SkillCategoryId,
+  SkillNode,
+  TaskPriority,
+  TimeBlock,
+} from "@/types";
 
+const FIELD_CLASS =
+  "mt-1 w-full rounded border border-white/[0.06] bg-white/5 px-3 py-2 text-sm text-white placeholder-zinc-600 transition-colors hover:border-white/[0.12] focus:border-white/[0.2] focus:outline-none";
 const SELECT_CLASS =
   "mt-1 w-full rounded border border-white/10 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 transition-colors hover:border-white/20 focus:border-white/30 focus:outline-none";
 const OPTION_CLASS = "bg-zinc-950 text-zinc-100";
@@ -10,34 +18,38 @@ const OPTION_CLASS = "bg-zinc-950 text-zinc-100";
 interface TimeBlockFormProps {
   onSubmit: (block: Omit<TimeBlock, "id"> | TimeBlock) => void;
   onCancel: () => void;
+  onAlert: (
+    title: string,
+    message: string,
+    variant?: "danger" | "warning" | "info",
+  ) => void;
   initialBlock?: TimeBlock;
-  /** Current skill categories (built-in + custom). */
   skillCategories: SkillCategory[];
-  /** Current skill node definitions (built-in + custom). */
   skillNodes: SkillNode[];
 }
 
 export function TimeBlockForm({
   onSubmit,
   onCancel,
+  onAlert,
   initialBlock,
   skillCategories,
   skillNodes,
 }: TimeBlockFormProps) {
   const isEdit = !!initialBlock;
 
-  // Helper: get skills for a category
   const getSkillsForCategory = (categoryId: SkillCategoryId) => {
     return skillNodes.filter((skill) => skill.categoryId === categoryId);
   };
 
-  // Helper: get first skill of a category
   const getFirstSkillOfCategory = (categoryId: SkillCategoryId) => {
     const skills = getSkillsForCategory(categoryId);
     return skills.length > 0 ? skills[0].id : undefined;
   };
 
-  const initialCategoryId = (initialBlock?.categoryId ?? skillCategories[0]?.id ?? "programming") as SkillCategoryId;
+  const initialCategoryId = (initialBlock?.categoryId ??
+    skillCategories[0]?.id ??
+    "") as SkillCategoryId;
   const initialSkillNodeId =
     initialBlock?.skillNodeId ?? getFirstSkillOfCategory(initialCategoryId);
 
@@ -49,6 +61,9 @@ export function TimeBlockForm({
     priority: (initialBlock?.priority ?? "should") as TaskPriority,
     kpiGoal: initialBlock?.kpiGoal ?? "",
     evidenceRequired: initialBlock?.evidenceRequired ?? "",
+    evidenceNote: initialBlock?.evidenceNote ?? "",
+    evidenceLink: initialBlock?.evidenceLink ?? "",
+    reflection: initialBlock?.reflection ?? "",
     skillNodeId: initialSkillNodeId,
   });
 
@@ -57,43 +72,66 @@ export function TimeBlockForm({
   ) => {
     const { name, value } = e.target;
 
-    // When category changes, reset skillNodeId to first skill of new category
     if (name === "categoryId") {
       const newCategoryId = value as SkillCategoryId;
       setFormData((prev) => ({
         ...prev,
-        [name]: newCategoryId,
+        categoryId: newCategoryId,
         skillNodeId: getFirstSkillOfCategory(newCategoryId),
       }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+      return;
     }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate required fields
     if (!formData.taskTitle.trim()) {
-      alert("Vui lòng nhập tiêu đề task");
+      onAlert(
+        "Thiếu tiêu đề task",
+        "Vui lòng nhập tiêu đề task trước khi lưu.",
+        "warning",
+      );
       return;
     }
+
+    if (!formData.categoryId.trim()) {
+      onAlert(
+        "Chưa có danh mục",
+        "Vui lòng tạo hoặc chọn danh mục trước khi thêm task.",
+        "warning",
+      );
+      return;
+    }
+
     if (!formData.kpiGoal.trim()) {
-      alert("Vui lòng nhập KPI goal");
+      onAlert(
+        "Thiếu KPI goal",
+        "Vui lòng nhập KPI goal để task có tiêu chí hoàn thành rõ ràng.",
+        "warning",
+      );
       return;
     }
+
     if (!formData.evidenceRequired.trim()) {
-      alert("Vui lòng nhập bằng chứng yêu cầu");
+      onAlert(
+        "Thiếu bằng chứng yêu cầu",
+        "Vui lòng nhập bằng chứng yêu cầu để biết task cần nộp/kết quả gì.",
+        "warning",
+      );
       return;
     }
 
     const submittedData = isEdit
       ? {
-          id: initialBlock.id,
+          ...initialBlock,
           ...formData,
+          id: initialBlock.id,
           status: initialBlock.status,
         }
       : {
@@ -106,13 +144,18 @@ export function TimeBlockForm({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-2xl rounded-lg border border-white/[0.06] bg-[#101216] p-6">
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-white/[0.06] bg-[#101216] p-6">
         <h2 className="text-lg font-medium text-white">
           {isEdit ? "Sửa Task" : "Thêm Task Mới"}
         </h2>
 
+        {skillCategories.length === 0 && (
+          <div className="mt-4 rounded border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+            App đang trống category. Hãy tạo category trong Skill Tree trước, rồi quay lại thêm task.
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          {/* Task Title */}
           <div>
             <label className="block text-sm font-medium text-zinc-400">
               Tiêu đề Task
@@ -122,12 +165,11 @@ export function TimeBlockForm({
               name="taskTitle"
               value={formData.taskTitle}
               onChange={handleChange}
-              className="mt-1 w-full rounded border border-white/[0.06] bg-white/5 px-3 py-2 text-sm text-white placeholder-zinc-600 transition-colors hover:border-white/[0.12] focus:border-white/[0.2] focus:outline-none"
+              className={FIELD_CLASS}
               placeholder="Ví dụ: Đọc 1 bài về TCP handshake"
             />
           </div>
 
-          {/* Time Range */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-zinc-400">
@@ -138,7 +180,7 @@ export function TimeBlockForm({
                 name="startTime"
                 value={formData.startTime}
                 onChange={handleChange}
-                className="mt-1 w-full rounded border border-white/[0.06] bg-white/5 px-3 py-2 text-sm text-white transition-colors hover:border-white/[0.12] focus:border-white/[0.2] focus:outline-none"
+                className={FIELD_CLASS}
               />
             </div>
             <div>
@@ -150,12 +192,11 @@ export function TimeBlockForm({
                 name="endTime"
                 value={formData.endTime}
                 onChange={handleChange}
-                className="mt-1 w-full rounded border border-white/[0.06] bg-white/5 px-3 py-2 text-sm text-white transition-colors hover:border-white/[0.12] focus:border-white/[0.2] focus:outline-none"
+                className={FIELD_CLASS}
               />
             </div>
           </div>
 
-          {/* Category & Priority */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-zinc-400">
@@ -167,6 +208,11 @@ export function TimeBlockForm({
                 onChange={handleChange}
                 className={SELECT_CLASS}
               >
+                {skillCategories.length === 0 && (
+                  <option value="" className={OPTION_CLASS}>
+                    Chưa có danh mục
+                  </option>
+                )}
                 {skillCategories.map((cat) => (
                   <option key={cat.id} value={cat.id} className={OPTION_CLASS}>
                     {cat.label}
@@ -185,19 +231,18 @@ export function TimeBlockForm({
                 className={SELECT_CLASS}
               >
                 <option value="must" className={OPTION_CLASS}>
-                  Must
+                  Bắt buộc
                 </option>
                 <option value="should" className={OPTION_CLASS}>
-                  Should
+                  Nên làm
                 </option>
                 <option value="stretch" className={OPTION_CLASS}>
-                  Stretch
+                  Thưởng thêm
                 </option>
               </select>
             </div>
           </div>
 
-          {/* Skill Selector */}
           <div>
             <label className="block text-sm font-medium text-zinc-400">
               Kỹ năng
@@ -219,7 +264,6 @@ export function TimeBlockForm({
             </select>
           </div>
 
-          {/* KPI Goal */}
           <div>
             <label className="block text-sm font-medium text-zinc-400">
               KPI Goal
@@ -229,27 +273,80 @@ export function TimeBlockForm({
               value={formData.kpiGoal}
               onChange={handleChange}
               rows={2}
-              className="mt-1 w-full rounded border border-white/[0.06] bg-white/5 px-3 py-2 text-sm text-white placeholder-zinc-600 transition-colors hover:border-white/[0.12] focus:border-white/[0.2] focus:outline-none"
-              placeholder="Ví dụ: Tóm tắt lại 3 bước bắt tay TCP bằng lời của mình"
+              className={FIELD_CLASS}
+              placeholder="Ví dụ: Giải 5 bài heap và commit code lên GitHub"
             />
           </div>
 
-          {/* Evidence Required */}
           <div>
             <label className="block text-sm font-medium text-zinc-400">
-              Bằng chứng Yêu cầu
+              Bằng chứng yêu cầu
             </label>
             <textarea
               name="evidenceRequired"
               value={formData.evidenceRequired}
               onChange={handleChange}
               rows={2}
-              className="mt-1 w-full rounded border border-white/[0.06] bg-white/5 px-3 py-2 text-sm text-white placeholder-zinc-600 transition-colors hover:border-white/[0.12] focus:border-white/[0.2] focus:outline-none"
-              placeholder="Ví dụ: Đoạn tóm tắt 3-5 câu"
+              className={FIELD_CLASS}
+              placeholder="Ví dụ: Link commit GitHub + ghi chú ngắn đã học được gì"
             />
           </div>
 
-          {/* Action Buttons */}
+          <div className="rounded border border-white/[0.06] bg-white/[0.03] p-4">
+            <div className="mb-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">
+                Evidence / Notes
+              </p>
+              <p className="mt-1 text-xs text-zinc-500">
+                Phần này có thể điền sau khi làm task xong để lưu bằng chứng thật.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-zinc-400">
+                  Ghi chú bằng chứng
+                </label>
+                <textarea
+                  name="evidenceNote"
+                  value={formData.evidenceNote}
+                  onChange={handleChange}
+                  rows={2}
+                  className={FIELD_CLASS}
+                  placeholder="Ví dụ: Đã giải 5 bài, sai 1 bài do nhầm heap min/max"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-zinc-400">
+                  Link bằng chứng
+                </label>
+                <input
+                  type="text"
+                  name="evidenceLink"
+                  value={formData.evidenceLink}
+                  onChange={handleChange}
+                  className={FIELD_CLASS}
+                  placeholder="Ví dụ: https://github.com/..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-zinc-400">
+                  Reflection sau khi làm
+                </label>
+                <textarea
+                  name="reflection"
+                  value={formData.reflection}
+                  onChange={handleChange}
+                  rows={3}
+                  className={FIELD_CLASS}
+                  placeholder="Ví dụ: Mình đã hiểu heapify, push/pop nhưng cần luyện thêm bài priority queue"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"

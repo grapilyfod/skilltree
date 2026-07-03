@@ -1,6 +1,5 @@
 import { LiveClock } from "@/components/LiveClock";
 import { DashboardClient } from "@/components/DashboardClient";
-import { TODAY_TIMEBLOCKS } from "@/lib/mock-data";
 
 export default function DashboardPage() {
   return (
@@ -11,13 +10,14 @@ export default function DashboardPage() {
             Skill Tree
           </h1>
           <p className="text-sm text-zinc-500">
-            Stats Tracker cho lịch công việc &amp; học tập hàng ngày 
+            Stats Tracker cho lịch công việc &amp; học tập hàng ngày
           </p>
         </div>
+
         <LiveClock />
       </header>
 
-      <DashboardClient initialBlocks={TODAY_TIMEBLOCKS} />
+      <DashboardClient />
     </div>
   );
 }
