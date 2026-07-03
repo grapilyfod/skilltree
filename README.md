@@ -3,6 +3,17 @@
 Skill Tree is a personal learning operating system for planning daily study sessions, tracking task execution, and visualizing skill progress over time.
 
 The app is currently built as a local-first MVP using **Next.js App Router**, **TypeScript**, **Tailwind CSS**, and **localStorage**. It does not use Supabase, authentication, or the OpenAI API yet.
+# Some future Increments/Features
+12. Task Detail Modal
+14. Export / Import Backup
+13. Weekly Adjustment
+15. Settings Page
+16. Skill History Snapshot
+17. Career Roadmap
+18. Portfolio Evidence Dashboard
+19. Supabase
+20. AI Planner
+21. AI KPI Checker
 
 ## Purpose
 
