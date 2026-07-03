@@ -98,6 +98,9 @@ export interface DailyReview {
   mood: ReviewMood;
   blockers: string;
   reflection: string;
+  /** First time this review was submitted. Used for streak eligibility. */
+  submittedAt?: string; // ISO timestamp
+  /** Last time this review was saved/edited. */
   reviewedAt: string; // ISO timestamp
   mustDone: number;
   mustPartial: number;

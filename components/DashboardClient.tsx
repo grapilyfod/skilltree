@@ -41,6 +41,7 @@ import {
 } from "@/lib/skill-tree-storage";
 
 const PROGRESS_PANELS_VISIBILITY_KEY = "skillforge_show_progress_panels";
+const STREAK_LOSS_NOTICE_KEY = "skillforge_streak_loss_notice_date";
 export function DashboardClient() {
   const [selectedDate, setSelectedDate] = useState<Date>(getToday());
   const [blocks, setBlocksState] = useState<TimeBlock[]>([]);
@@ -49,6 +50,7 @@ export function DashboardClient() {
   const [editingBlock, setEditingBlock] = useState<TimeBlock | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [dailyReviews, setDailyReviews] = useState<Record<string, DailyReview>>({});
+  const [isDailyReviewsLoaded, setIsDailyReviewsLoaded] = useState(false);
   const [showProgressPanels, setShowProgressPanels] = useState(true);
   const [isProgressPreferenceLoaded, setIsProgressPreferenceLoaded] = useState(false);
   // --- Custom Skill Tree Builder state (Increment 9) ---
@@ -83,7 +85,6 @@ export function DashboardClient() {
     variant?: "danger" | "warning" | "info";
     onConfirm: () => void;
   } | null>(null);
-  
   const weeklySummary = useMemo(() => {
     const timetables = getTimetablesMap();
     timetables[selectedDateStr] = blocks;
@@ -132,12 +133,60 @@ export function DashboardClient() {
     });
   };
   /**
+   * Notify once per day when the current streak drops to 0 because today
+   * has not submitted a valid Daily Review yet.
+   */
+  useEffect(() => {
+    if (typeof window === "undefined" || !isDailyReviewsLoaded || confirmDialog) {
+      return;
+    }
+
+    const today = getToday();
+    const todayStr = formatDate(today);
+    const currentStreak = calculateStreak(dailyReviews, today);
+
+    if (currentStreak > 0) {
+      return;
+    }
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const previousStreak = calculateStreak(dailyReviews, yesterday);
+
+    if (previousStreak <= 0) {
+      return;
+    }
+
+    const noticeValue = `${todayStr}:${previousStreak}`;
+
+    if (window.localStorage.getItem(STREAK_LOSS_NOTICE_KEY) === noticeValue) {
+      return;
+    }
+
+    window.localStorage.setItem(STREAK_LOSS_NOTICE_KEY, noticeValue);
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setConfirmDialog({
+      title: "Streak đang về 0",
+      message: `Hôm qua bạn đang có streak ${previousStreak} ngày. Hôm nay chưa nộp Review ngày nên streak hiện đang về 0. Nộp Review của ngày hôm nay để giữ chuỗi.`,
+      confirmLabel: "OK",
+      showCancel: false,
+      variant: "warning",
+      onConfirm: () => {
+        setConfirmDialog(null);
+      },
+    });
+  }, [confirmDialog, dailyReviews, isDailyReviewsLoaded]);
+
+  /**
    * Load daily reviews on mount.
    */
   useEffect(() => {
     const reviews = getDailyReviews();
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setDailyReviews(reviews);
+    setIsDailyReviewsLoaded(true);
   }, []);
 
   /**
@@ -398,6 +447,15 @@ const normalizedCategories = initialCategories.map((category) => {
       [review.date]: review,
     }));
     setShowReviewModal(false);
+
+    const todayStr = formatDate(getToday());
+    if (review.date !== todayStr) {
+      showAlertDialog(
+        "Review đã lưu",
+        "Review này được lưu lại để xem lịch sử, nhưng không tăng streak hôm nay. Streak chỉ tăng khi bạn nộp Review của ngày hiện tại.",
+        "info",
+      );
+    }
   };
 
   /**
@@ -636,6 +694,7 @@ const handleDeleteCategory = (category: SkillCategory) => {
         <AddSkillCategoryForm
           onSubmit={handleAddCategory}
           onCancel={() => setShowAddCategoryForm(false)}
+          onAlert={showAlertDialog}
         />
       )}
 
@@ -644,6 +703,7 @@ const handleDeleteCategory = (category: SkillCategory) => {
           categories={skillCategories}
           onSubmit={handleAddSkill}
           onCancel={() => setShowAddSkillForm(false)}
+          onAlert={showAlertDialog}
         />
       )}
       {confirmDialog && (

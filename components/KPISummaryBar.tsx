@@ -12,9 +12,8 @@ interface Metric {
   accent: string;
 }
 
-export function KPISummaryBar({ blocks, summary: propsummary }: KPISummaryBarProps) {
-  // If blocks are provided, calculate summary dynamically; otherwise use provided summary
-  const summary = blocks ? calculateKPISummary(blocks) : propsummary;
+export function KPISummaryBar({ blocks, summary: propSummary }: KPISummaryBarProps) {
+  const summary = propSummary ?? (blocks ? calculateKPISummary(blocks) : undefined);
 
   if (!summary) {
     return null;

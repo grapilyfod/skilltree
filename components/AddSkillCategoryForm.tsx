@@ -9,9 +9,18 @@ interface AddSkillCategoryFormProps {
   /** Raw user input; caller is responsible for generating the id. */
   onSubmit: (input: { name: string; description: string }) => void;
   onCancel: () => void;
+  onAlert: (
+    title: string,
+    message: string,
+    variant?: "danger" | "warning" | "info",
+  ) => void;
 }
 
-export function AddSkillCategoryForm({ onSubmit, onCancel }: AddSkillCategoryFormProps) {
+export function AddSkillCategoryForm({
+  onSubmit,
+  onCancel,
+  onAlert,
+}: AddSkillCategoryFormProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
@@ -19,7 +28,11 @@ export function AddSkillCategoryForm({ onSubmit, onCancel }: AddSkillCategoryFor
     e.preventDefault();
 
     if (!name.trim()) {
-      alert("Vui lòng nhập tên category");
+      onAlert(
+        "Thiếu tên category",
+        "Vui lòng nhập tên category trước khi lưu.",
+        "warning",
+      );
       return;
     }
 

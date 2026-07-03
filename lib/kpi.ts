@@ -22,6 +22,6 @@ export function calculateKPISummary(blocks: TimeBlock[]): DailyKPISummary {
     doneCount: doneBlocks.length,
     partialCount: partialBlocks.length,
     missedCount: missedBlocks.length,
-    streakDays: 4, // Static for now; would be calculated from historical data
+    streakDays: 0,
   };
 }

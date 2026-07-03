@@ -19,9 +19,19 @@ interface AddSkillNodeFormProps {
     targetTaskCount: number;
   }) => void;
   onCancel: () => void;
+  onAlert: (
+    title: string,
+    message: string,
+    variant?: "danger" | "warning" | "info",
+  ) => void;
 }
 
-export function AddSkillNodeForm({ categories, onSubmit, onCancel }: AddSkillNodeFormProps) {
+export function AddSkillNodeForm({
+  categories,
+  onSubmit,
+  onCancel,
+  onAlert,
+}: AddSkillNodeFormProps) {
   const [categoryId, setCategoryId] = useState<SkillCategoryId>(categories[0]?.id ?? "");
   const [name, setName] = useState("");
   const [targetTaskCount, setTargetTaskCount] = useState(DEFAULT_TARGET_TASK_COUNT);
@@ -30,17 +40,29 @@ export function AddSkillNodeForm({ categories, onSubmit, onCancel }: AddSkillNod
     e.preventDefault();
 
     if (!categoryId) {
-      alert("Vui lòng chọn category");
+      onAlert(
+        "Chưa chọn category",
+        "Vui lòng chọn category trước khi thêm skill.",
+        "warning",
+      );
       return;
     }
 
     if (!name.trim()) {
-      alert("Vui lòng nhập tên skill");
+      onAlert(
+        "Thiếu tên skill",
+        "Vui lòng nhập tên skill trước khi lưu.",
+        "warning",
+      );
       return;
     }
 
     if (!Number.isFinite(targetTaskCount) || targetTaskCount < 1) {
-      alert("Target tasks phải lớn hơn hoặc bằng 1");
+      onAlert(
+        "Target tasks không hợp lệ",
+        "Target tasks phải lớn hơn hoặc bằng 1.",
+        "warning",
+      );
       return;
     }
 

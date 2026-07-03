@@ -5,66 +5,84 @@ interface ReviewLike {
   submitted?: boolean;
   completed?: boolean;
   isCompleted?: boolean;
+  submittedAt?: string;
   reviewedAt?: string;
   createdAt?: string;
 }
 
+function getLocalDateFromTimestamp(timestamp: string | undefined): string | null {
+  if (!timestamp) {
+    return null;
+  }
+
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return formatDate(date);
+}
+
 /**
- * A Daily Review counts as "completed" if any of these fields is truthy:
- * submitted, completed, isCompleted, reviewedAt, createdAt.
- * This intentionally does NOT look at must tasks or review.result —
- * streak tracks whether you showed up and reviewed, not task perfection.
+ * A review is streak-eligible only if it was first submitted on the same
+ * local calendar day as the review date.
+ *
+ * Example:
+ * - Today is 2026-07-04, user reviews 2026-07-04 => counts.
+ * - Today is 2026-07-04, user goes back and reviews 2026-07-03 => saved,
+ *   but does NOT count for streak.
  */
-function isReviewCompleted(review: DailyReview | undefined): boolean {
-  if (!review) {
+export function isReviewSubmittedOnDate(
+  review: DailyReview | undefined,
+  dateStr: string,
+): boolean {
+  if (!review || review.date !== dateStr) {
     return false;
   }
 
   const candidate = review as DailyReview & ReviewLike;
 
-  if (candidate.submitted || candidate.completed || candidate.isCompleted) {
-    return true;
+  if (candidate.submitted === false || candidate.completed === false || candidate.isCompleted === false) {
+    return false;
   }
 
-  return Boolean(candidate.reviewedAt || candidate.createdAt);
+  const submittedDate = getLocalDateFromTimestamp(
+    candidate.submittedAt ?? candidate.reviewedAt ?? candidate.createdAt,
+  );
+
+  return submittedDate === dateStr;
 }
 
 /**
- * Calculate the current streak from daily reviews.
- * Counts consecutive days from today backwards where the Daily Review is
- * completed (see isReviewCompleted). Does not depend on must tasks or on
- * all tasks being done.
+ * Calculate the current streak from today backwards.
+ *
+ * Rules:
+ * - Today MUST have a streak-eligible Daily Review, otherwise streak = 0.
+ * - A past date counts only if its review was actually submitted on that date.
+ * - Backfilling yesterday's review today will save the review, but will not
+ *   increase or repair the streak.
  */
-export function calculateStreak(reviews: Record<string, DailyReview>): number {
+export function calculateStreak(
+  reviews: Record<string, DailyReview>,
+  today: Date = new Date(),
+): number {
   let streak = 0;
-  const currentDate = new Date();
+  const currentDate = new Date(today);
   currentDate.setHours(0, 0, 0, 0);
 
-  // Look backwards from today
+  const todayStr = formatDate(currentDate);
+  if (!isReviewSubmittedOnDate(reviews[todayStr], todayStr)) {
+    return 0;
+  }
+
   while (true) {
     const dateStr = formatDate(currentDate);
-    const review = reviews[dateStr];
 
-    if (!isReviewCompleted(review)) {
-      // If there's no completed review, check if this is today or in the future
-      // If it's today or future, continue looking back; otherwise break
-      const now = new Date();
-      now.setHours(0, 0, 0, 0);
-      if (currentDate.getTime() > now.getTime()) {
-        // Future date, skip
-        currentDate.setDate(currentDate.getDate() - 1);
-        continue;
-      } else if (currentDate.getTime() === now.getTime()) {
-        // Today but no review yet, stop
-        break;
-      } else {
-        // Past date without a completed review, streak is broken
-        break;
-      }
+    if (!isReviewSubmittedOnDate(reviews[dateStr], dateStr)) {
+      break;
     }
 
-    // Found a completed review
-    streak++;
+    streak += 1;
     currentDate.setDate(currentDate.getDate() - 1);
   }
 

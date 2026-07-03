@@ -2,6 +2,7 @@ import type { DailyReview, SkillCategory, SkillNode, TimeBlock } from "@/types";
 import { formatDate, parseDate } from "@/lib/date-utils";
 import { SKILL_CATEGORIES, SKILL_NODES } from "@/lib/mock-data";
 import { calculateTaskEquivalentProgress, resolveSkillNodeId } from "@/lib/skill-mastery";
+import { isReviewSubmittedOnDate } from "@/lib/streak-utils";
 
 export interface WeeklySummary {
   startDate: string;
@@ -27,14 +28,6 @@ export interface WeeklySummary {
   } | null;
 }
 
-interface ReviewLike {
-  submitted?: boolean;
-  completed?: boolean;
-  isCompleted?: boolean;
-  reviewedAt?: string;
-  createdAt?: string;
-}
-
 function normalizeStatus(status?: string | null): "done" | "partial" | "failed" | null {
   const value = status?.toString().trim().toLowerCase() ?? "";
 
@@ -55,19 +48,6 @@ function normalizeStatus(status?: string | null): "done" | "partial" | "failed" 
   }
 
   return null;
-}
-
-function getReviewCompletion(review: DailyReview | undefined): boolean {
-  const candidate = review as DailyReview & ReviewLike | undefined;
-  if (!candidate) {
-    return false;
-  }
-
-  if (candidate.submitted || candidate.completed || candidate.isCompleted) {
-    return true;
-  }
-
-  return Boolean(candidate.reviewedAt || candidate.createdAt);
 }
 
 function getSkillNodeName(
@@ -221,7 +201,7 @@ export function calculateWeeklySummary(
 
   for (const dateStr of range) {
     const review = dailyReviews[dateStr];
-    if (getReviewCompletion(review)) {
+    if (isReviewSubmittedOnDate(review, dateStr)) {
       summary.reviewDays += 1;
     }
   }

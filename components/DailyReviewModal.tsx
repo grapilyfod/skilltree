@@ -41,13 +41,16 @@ export function DailyReviewModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const savedAt = new Date().toISOString();
+
     const review: DailyReview = {
       date: dateStr,
       result,
       mood,
       blockers,
       reflection,
-      reviewedAt: new Date().toISOString(),
+      submittedAt: existingReview?.submittedAt ?? existingReview?.reviewedAt ?? savedAt,
+      reviewedAt: savedAt,
       mustDone,
       mustPartial,
       mustMissed,
