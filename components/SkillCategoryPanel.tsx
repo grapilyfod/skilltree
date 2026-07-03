@@ -44,7 +44,7 @@ export function SkillCategoryPanel({
               type="button"
               title={`Xóa category ${category.label}`}
               onClick={() => onDeleteCategory(category)}
-              className="flex h-5 w-5 items-center justify-center rounded-full border border-red-500/20 text-xs font-bold text-red-300 opacity-0 transition hover:bg-red-500/10 group-hover:opacity-100"
+              className="flex h-5 w-5 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 text-xs font-bold text-red-300 opacity-100 transition hover:border-red-400/40 hover:bg-red-500/20 hover:text-red-200 [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100"
             >
               −
             </button>
