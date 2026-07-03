@@ -112,7 +112,7 @@ export function TimeBlockCard({
           <StatusBadge status={block.status} />
 
           {(onEdit || onDelete) && (
-            <div className="flex gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+            <div className="flex gap-1 opacity-100 [@media(hover:hover)_and_(pointer:fine)]:opacity-0 [@media(hover:hover)_and_(pointer:fine)]:group-hover:opacity-100">
               {onEdit && (
                 <button
                   type="button"
