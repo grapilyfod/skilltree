@@ -570,7 +570,11 @@ const handleDeleteCategory = (category: SkillCategory) => {
   );
 };
   if (!isLoaded || !isSkillTreeLoaded) {
-    return null;
+    return (
+      <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 text-center text-sm text-zinc-400">
+        Đang tải dashboard...
+      </div>
+    );
   }
 
   return (
