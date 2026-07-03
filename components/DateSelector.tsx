@@ -41,7 +41,7 @@ export function DateSelector({ selectedDate, onDateChange }: DateSelectorProps) 
       <div className="flex items-center gap-3">
         <button
           onClick={handlePreviousDay}
-          className="rounded border border-white/[0.06] bg-white/5 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zinc-400 transition-all hover:bg-white/10 hover:text-zinc-300"
+          className="rounded-lg border border-violet-500/20 bg-violet-500/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-violet-200 transition hover:border-violet-400/40 hover:bg-violet-500/20"
         >
           ← Hôm qua
         </button>
@@ -58,7 +58,7 @@ export function DateSelector({ selectedDate, onDateChange }: DateSelectorProps) 
 
         <button
           onClick={handleNextDay}
-          className="rounded border border-white/[0.06] bg-white/5 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zinc-400 transition-all hover:bg-white/10 hover:text-zinc-300"
+          className="rounded-lg border border-violet-500/20 bg-violet-500/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-violet-200 transition hover:border-violet-400/40 hover:bg-violet-500/20"
         >
           Ngày mai →
         </button>

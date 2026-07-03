@@ -51,7 +51,8 @@ export function TimeBlockCard({
   onEdit,
   onDelete,
 }: TimeBlockCardProps) {
-  const categoryStyle = getCategoryStyle(block.categoryId);
+  const category = categories.find((c) => c.id === block.categoryId);
+  const categoryStyle = getCategoryStyle(block.categoryId, category?.color);
   const skillNodeId = resolveSkillNodeId(block, skillNodes);
   const skillNode = skillNodes.find((node) => node.id === skillNodeId);
   const priorityStyle = PRIORITY_STYLES[block.priority];

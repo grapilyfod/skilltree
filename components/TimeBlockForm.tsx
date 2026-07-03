@@ -237,7 +237,7 @@ export function TimeBlockForm({
                   Nên làm
                 </option>
                 <option value="stretch" className={OPTION_CLASS}>
-                  Thưởng thêm
+                  Bổ sung
                 </option>
               </select>
             </div>

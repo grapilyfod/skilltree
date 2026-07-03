@@ -595,7 +595,7 @@ const handleDeleteCategory = (category: SkillCategory) => {
         </button>
         <button
           onClick={handleResetDay}
-          className="rounded border border-white/[0.06] bg-white/5 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-zinc-400 transition-all hover:bg-white/10 hover:text-zinc-300"
+          className="rounded border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs uppercase tracking-wide text-red-300 transition hover:border-red-400/50 hover:bg-red-500/20 hover:text-red-200"
         >
           Reset ngày
         </button>
@@ -613,15 +613,15 @@ const handleDeleteCategory = (category: SkillCategory) => {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
         <section className="flex flex-col gap-3">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-sm font-medium uppercase tracking-wide text-zinc-500">
               Lịch trình {selectedDateStr}
             </h2>
 
             <button
               type="button"
               onClick={handleCopyTasksToTomorrow}
-              className="rounded border border-violet-500/30 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-violet-300 transition hover:bg-violet-500/20"
+              className="rounded border border-violet-500/30 bg-violet-500/10 px-3 py-1.5 text-xs uppercase tracking-wide text-violet-200 transition hover:border-violet-400/50 hover:bg-violet-500/20 hover:text-violet-100"
             >
               Copy tasks sang ngày mai
             </button>
